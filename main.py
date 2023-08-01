@@ -19,9 +19,10 @@ def get_comic(comic_number):
     comic_url = f'https://xkcd.com/{comic_number}/info.0.json'
     response = requests.get(comic_url)
     response.raise_for_status()
+    response_json = response.json()
     comic = {
-        'image_url': response.json().get('img'),
-        'alt': response.json().get('alt'),
+        'image_url': response_json.get('img'),
+        'alt': response_json.get('alt'),
     }
     return comic
 
@@ -65,7 +66,8 @@ def upload_comic_server(image_name, upload_url):
         }
         response = requests.post(upload_url, files=files)
         response.raise_for_status()
-    return response.json().get('server'), response.json().get('photo'), response.json().get('hash')
+        response_json = response.json()
+    return response_json.get('server'), response_json.get('photo'), response_json.get('hash')
 
 
 def save_comic_album(access_token, api_version, group_id, server, photo, vk_hash):
