@@ -6,41 +6,41 @@ from urllib.parse import urlparse
 import sys
 
 
-def get_random_comics_number():
+def get_random_comic_number():
     first_comic_number = 1
     response = requests.get('https://xkcd.com/info.0.json')
     response.raise_for_status()
     last_comic_number = int(response.json().get('num'))
-    random_comics_number = randint(first_comic_number, last_comic_number)
-    return random_comics_number
+    random_comic_number = randint(first_comic_number, last_comic_number)
+    return random_comic_number
 
 
-def get_comics(comics_number):
-    comics_url = f'https://xkcd.com/{comics_number}/info.0.json'
-    response = requests.get(comics_url)
+def get_comic(comic_number):
+    comic_url = f'https://xkcd.com/{comic_number}/info.0.json'
+    response = requests.get(comic_url)
     response.raise_for_status()
-    comics = {
+    comic = {
         'image_url': response.json().get('img'),
         'alt': response.json().get('alt'),
     }
-    return comics
+    return comic
 
 
-def get_comics_image(api_url):
+def get_comic_image(api_url):
     response = requests.get(api_url)
     response.raise_for_status()
     return response
 
 
-def get_image_name(image_url, comics_number):
+def get_image_name(image_url, comic_number):
     path = urlparse(image_url).path
     extension = os.path.splitext(path)[1]
     name = os.path.splitext(path)[0].split('/')[-1]
-    image_name = f'comics_{comics_number}_{name}.{extension}'
+    image_name = f'comic_{comic_number}_{name}.{extension}'
     return image_name
 
 
-def save_comics_image(file_image, image_name):
+def save_comic_image(file_image, image_name):
     file_path = os.path.join(image_name)
     with open(file_path, 'wb') as file:
         file.write(file_image.content)
@@ -58,7 +58,7 @@ def get_photo_upload_url(access_token, api_version, group_id):
     return upload_url
 
 
-def upload_comics_server(image_name, upload_url):
+def upload_comic_server(image_name, upload_url):
     with open(image_name, 'rb') as file:
         files = {
             'photo': file,
@@ -68,7 +68,7 @@ def upload_comics_server(image_name, upload_url):
     return response.json().get('server'), response.json().get('photo'), response.json().get('hash')
 
 
-def save_comics_album(access_token, api_version, group_id, server, photo, vk_hash):
+def save_comic_album(access_token, api_version, group_id, server, photo, vk_hash):
     payload = {
         'access_token': access_token,
         'v': api_version,
@@ -105,21 +105,21 @@ if __name__ == "__main__":
     vk_api_version = os.environ['VK_API_VERSION']
 
     try:
-        comics_number = get_random_comics_number()
+        comic_number = get_random_comic_number()
     except requests.exceptions.HTTPError as error:
         print(error, file=sys.stderr)
 
-    comics = get_comics(comics_number)
-    comics_alt = comics.get('alt')
-    comics_image = get_comics_image(comics.get('image_url'))
-    image_name = get_image_name(comics.get('image_url'), comics_number)
-    save_comics_image(comics_image, image_name)
+    comic = get_comic(comic_number)
+    comic_alt = comic.get('alt')
+    comic_image = get_comic_image(comic.get('image_url'))
+    image_name = get_image_name(comic.get('image_url'), comic_number)
+    save_comic_image(comic_image, image_name)
 
     try:
         photo_upload_url = get_photo_upload_url(vk_access_token, vk_api_version, vk_group_id)
-        server, photo, vk_hash = upload_comics_server(image_name, photo_upload_url)
-        owner_id, media_id = save_comics_album(vk_access_token, vk_api_version, vk_group_id, server, photo, vk_hash)
-        post_on_wall(vk_access_token, vk_api_version, vk_group_id, comics_alt, owner_id, media_id)
+        server, photo, vk_hash = upload_comic_server(image_name, photo_upload_url)
+        owner_id, media_id = save_comic_album(vk_access_token, vk_api_version, vk_group_id, server, photo, vk_hash)
+        post_on_wall(vk_access_token, vk_api_version, vk_group_id, comic_alt, owner_id, media_id)
     except requests.exceptions.HTTPError as error:
         print(error, file=sys.stderr)
 
