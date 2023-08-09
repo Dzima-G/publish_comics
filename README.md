@@ -12,7 +12,6 @@
 └── main.py
 ```
 Обязательные переменные окружения:
-- `VK_CLIENT_ID` - ID приложения, выглядит например: `11117386`. Если нажать на кнопку “Редактировать” для приложения, в адресной строке вы увидите его `client_id`
 - `VK_ACCESS_TOKEN` - `access_token`, выглядит например: `vk1.a.34dq_LqEy0AEY5cFbwdvcuevvYNu_ss8tEUAdm2VA3Ixt6RqZjy6mpEqhJfeU-ZZvc3qnI-8fG0GWjQIa1XYVONGaOfMGLcmCrFzfzuAPm8jR`. См. документацию https://dev.vk.com/ru/api/access-token/implicit-flow-user?ref=old_portal
 - `VK_API_VERSION` - `api_version`. Скрипт написан вод версию `5.131`, работа скрипта может быть нарушена используя другую версию API.
 - `VK_GROUP_ID` - ID группы(сообщества), выглядит например: `221751999`. Узнать `group_id` для вашей группы можно https://regvk.com/id/

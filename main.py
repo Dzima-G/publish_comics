@@ -3,7 +3,19 @@ import requests
 from dotenv import load_dotenv
 from random import randint
 from urllib.parse import urlparse
-import sys
+
+
+class VkApiError(requests.HTTPError):
+    """Отлавливает ошибки VK api"""
+    pass
+
+
+def check_vk_api_error(response):
+    if response.json().get('error'):
+        response_error = response.json().get('error')
+        error_code = response_error.get('error_code')
+        error_msg = response_error.get('error_msg')
+        raise VkApiError(f'Код ошибки VK api {error_code} - {error_msg}')
 
 
 def download_random_comic():
@@ -43,6 +55,7 @@ def get_photo_upload_url(access_token, api_version, group_id):
     }
     response = requests.get('https://api.vk.com/method/photos.getWallUploadServer', params=payload)
     response.raise_for_status()
+    check_vk_api_error(response)
     upload_url = response.json().get('response').get('upload_url')
     return upload_url
 
@@ -53,8 +66,9 @@ def upload_comic_server(image_name, upload_url):
             'photo': file,
         }
         response = requests.post(upload_url, files=files)
-        response.raise_for_status()
-        response_json = response.json()
+    response.raise_for_status()
+    check_vk_api_error(response)
+    response_json = response.json()
     return response_json.get('server'), response_json.get('photo'), response_json.get('hash')
 
 
@@ -69,6 +83,7 @@ def save_comic_album(access_token, api_version, group_id, server, photo, vk_hash
     }
     response = requests.post('https://api.vk.com/method/photos.saveWallPhoto', params=payload)
     response.raise_for_status()
+    check_vk_api_error(response)
     response = response.json()['response'][0]
 
     return response.get('owner_id'), response.get('id')
@@ -85,11 +100,11 @@ def post_on_wall(access_token, api_version, group_id, comments, owner_id, media_
     }
     response = requests.post('https://api.vk.com/method/wall.post', params=payload)
     response.raise_for_status()
+    check_vk_api_error(response)
 
 
 if __name__ == "__main__":
     load_dotenv()
-    vk_client_id = os.environ['VK_CLIENT_ID']
     vk_access_token = os.environ['VK_ACCESS_TOKEN']
     vk_group_id = os.environ['VK_GROUP_ID']
     vk_api_version = os.environ['VK_API_VERSION']
@@ -100,8 +115,8 @@ if __name__ == "__main__":
         server, photo, vk_hash = upload_comic_server(image_name, photo_upload_url)
         owner_id, media_id = save_comic_album(vk_access_token, vk_api_version, vk_group_id, server, photo, vk_hash)
         post_on_wall(vk_access_token, vk_api_version, vk_group_id, comic_alt, owner_id, media_id)
-    except requests.exceptions.HTTPError as error:
-        print(error, file=sys.stderr)
-
-    os.remove(image_name)
-    print("Комикс опубликован!")
+        print("Комикс опубликован!")
+    except VkApiError as error:
+        print(error)
+    finally:
+        os.remove(image_name)
