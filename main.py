@@ -10,9 +10,9 @@ class VkApiError(requests.HTTPError):
     pass
 
 
-def check_vk_api_error(response_json):
-    if response_json.get('error'):
-        response_error = response_json.get('error')
+def check_vk_api_error(response):
+    if response.get('error'):
+        response_error = response.get('error')
         error_code = response_error.get('error_code')
         error_msg = response_error.get('error_msg')
         raise VkApiError(f'Код ошибки VK api {error_code} - {error_msg}')
@@ -28,9 +28,9 @@ def download_random_comic():
     comic_url = f'https://xkcd.com/{random_comic_number}/info.0.json'
     response = requests.get(comic_url)
     response.raise_for_status()
-    response_json = response.json()
-    comic_image_url = response_json.get('img')
-    comic_alt = response_json.get('alt')
+    response = response.json()
+    comic_image_url = response.get('img')
+    comic_alt = response.get('alt')
 
     response = requests.get(comic_image_url)
     response.raise_for_status()
@@ -55,9 +55,9 @@ def get_photo_upload_url(access_token, api_version, group_id):
     }
     response = requests.get('https://api.vk.com/method/photos.getWallUploadServer', params=payload)
     response.raise_for_status()
-    response_json = response.json()
-    check_vk_api_error(response_json)
-    upload_url = response_json.get('response').get('upload_url')
+    response = response.json()
+    check_vk_api_error(response)
+    upload_url = response.get('response').get('upload_url')
     return upload_url
 
 
@@ -68,9 +68,9 @@ def upload_comic_server(image_name, upload_url):
         }
         response = requests.post(upload_url, files=files)
     response.raise_for_status()
-    response_json = response.json()
-    check_vk_api_error(response_json)
-    return response_json.get('server'), response_json.get('photo'), response_json.get('hash')
+    response = response.json()
+    check_vk_api_error(response)
+    return response.get('server'), response.get('photo'), response.get('hash')
 
 
 def save_comic_album(access_token, api_version, group_id, server, photo, vk_hash):
@@ -84,10 +84,10 @@ def save_comic_album(access_token, api_version, group_id, server, photo, vk_hash
     }
     response = requests.post('https://api.vk.com/method/photos.saveWallPhoto', params=payload)
     response.raise_for_status()
-    response_json = response.json()
-    check_vk_api_error(response_json)
-    response_json = response_json['response'][0]
-    return response_json.get('owner_id'), response_json.get('id')
+    response = response.json()
+    check_vk_api_error(response)
+    response = response['response'][0]
+    return response.get('owner_id'), response.get('id')
 
 
 def post_on_wall(access_token, api_version, group_id, comments, owner_id, media_id):
